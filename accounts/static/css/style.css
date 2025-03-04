@@ -1,47 +1,249 @@
-body {
-    background-color: #0A0A0A;
-    color: white;
-    font-family: Arial, sans-serif;
+/* Reset and base styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
+body {
+    background-color: #0a0a14;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+/* Main container */
 .signup-container {
     display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100vh;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 650px;
+    background: linear-gradient(135deg, #111124, #1a1a2e);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 40px rgba(0, 0, 255, 0.1);
 }
 
+/* Left section */
 .left {
     width: 40%;
-    padding: 20px;
-    text-align: left;
+    padding: 50px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    background: linear-gradient(135deg, #0c0c1d, #151530);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background effects */
+.left::before {
+    content: '';
+    position: absolute;
+    top: -100px;
+    left: -100px;
+    width: 300px;
+    height: 300px;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.1), rgba(0, 102, 255, 0.05));
+    border-radius: 50%;
+    z-index: 0;
+}
+
+.left::after {
+    content: '';
+    position: absolute;
+    bottom: -100px;
+    right: -100px;
+    width: 250px;
+    height: 250px;
+    background: linear-gradient(135deg, rgba(0, 102, 255, 0.05), rgba(0, 102, 255, 0.02));
+    border-radius: 50%;
+    z-index: 0;
+}
+
+/* Left section content */
+.left h2 {
+    font-size: 32px;
+    margin-bottom: 30px;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
+}
+
+.left h1 {
+    font-size: 28px;
+    margin-bottom: 40px;
+    font-weight: 400;
+    position: relative;
+    z-index: 1;
 }
 
 .left h1 span {
-    color: blue;
+    display: block;
+    font-size: 48px;
+    color: #0095ff;
+    font-weight: 700;
+    margin-bottom: 5px;
 }
 
-.right {
-    width: 50%;
-    background: #121212;
-    padding: 20px;
-    border-radius: 10px;
+.left p {
+    color: #aaa;
+    margin-bottom: 30px;
+    margin-top: 80px;
+    position: relative;
+    z-index: 1;
 }
 
-form {
+.left a {
+    color: #0095ff;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+/* Social icons */
+.social-icons {
     display: flex;
-    flex-direction: column;
+    gap: 15px;
+    margin-top: 20px;
+    position: relative;
+    z-index: 1;
 }
 
-form input, form button {
-    margin: 10px 0;
-    padding: 10px;
+.social-icons a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background-color: rgba(255, 255, 255, 0.1);
+    transition: all 0.3s ease;
+}
+
+.social-icons img {
+    width: 20px;
+    height: 20px;
+}
+
+.social-icons a:hover {
+    background-color: #0095ff;
+    transform: translateY(-3px);
+}
+
+/* Right section */
+.right {
+    width: 60%;
+    padding: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Form styles */
+form {
     width: 100%;
+    max-width: 500px;
+    background-color: rgba(30, 30, 50, 0.5);
+    padding: 30px;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+/* Make certain inputs take full width */
+form input[name="phone"],
+form input[name="email"],
+form input[name="zip_code"] {
+    grid-column: span 2;
+}
+
+input {
+    padding: 12px 15px;
+    background-color: rgba(20, 20, 40, 0.7);
+    border: 1px solid rgba(100, 100, 150, 0.3);
+    border-radius: 5px;
+    color: #fff;
+    font-size: 14px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+input:focus {
+    border-color: #0095ff;
+    box-shadow: 0 0 5px rgba(0, 149, 255, 0.5);
+}
+
+input::placeholder {
+    color: #aaa;
 }
 
 button {
-    background-color: purple;
-    color: white;
+    grid-column: span 2;
+    width: 100%;
+    max-width: 200px;
+    padding: 12px 20px;
+    background-color: #5d4fff;
+    color: #fff;
     border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 15px auto 0;
+    transition: all 0.3s ease;
+}
+
+button:hover {
+    background-color: #4a3de0;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(93, 79, 255, 0.3);
+}
+
+button::after {
+    content: " →";
+    margin-left: 5px;
+}
+
+/* Responsive styles */
+@media (max-width: 900px) {
+    .signup-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .left, .right {
+        width: 100%;
+        padding: 30px 20px;
+    }
+    
+    .left {
+        text-align: center;
+    }
+    
+    .social-icons {
+        justify-content: center;
+    }
+    
+    form {
+        grid-template-columns: 1fr;
+    }
+    
+    form input[name="phone"],
+    form input[name="email"],
+    form input[name="zip_code"] {
+        grid-column: span 1;
+    }
+    
+    button {
+        grid-column: span 1;
+    }
 }
