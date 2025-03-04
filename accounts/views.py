@@ -14,6 +14,9 @@ def home(request):
 def user_login(request):
     return render(request, 'accounts/login.html')  # Create this template
 
+def dashboard(request):
+    return render(request, 'accounts/dashboard.html')  # Create this template
+
 
 def signup(request):
     if request.method == "POST":
@@ -56,6 +59,6 @@ def signup(request):
         user.save()
 
         messages.success(request, "Signup successful! You can now log in.")
-        return redirect('login')
+        return redirect('dashboard')
 
     return render(request, 'accounts/signup.html')
