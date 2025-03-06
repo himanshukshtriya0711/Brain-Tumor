@@ -14,8 +14,8 @@ def home(request):
 def user_login(request):
     return render(request, 'accounts/login.html')  # Create this template
 
-def dashboard(request):
-    return render(request, 'accounts/dashboard.html')  # Create this template
+def user_medi_info(request):
+    return render(request, 'accounts/user_medi_info.html')  # Create this template
 
 
 def signup(request):
@@ -59,6 +59,6 @@ def signup(request):
         user.save()
 
         messages.success(request, "Signup successful! You can now log in.")
-        return redirect('dashboard')
+        return redirect('user_medical_info')
 
     return render(request, 'accounts/signup.html')

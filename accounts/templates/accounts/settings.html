@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="settings.css">
+</head>
+<body>
+    <div class="settings-container">
+        <h2>Profile Settings</h2>
+        <label for="username">Username:</label>
+        <input type="text" id="username" placeholder="Enter new username">
+
+        <label for="gender">Gender:</label>
+        <select id="gender">
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+        </select>
+
+        <button onclick="saveSettings()">Save Changes</button>
+    </div>
+
+    <script src="settings.js"></script>
+</body>
+</html>
+

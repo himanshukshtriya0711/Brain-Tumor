@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="profile.css">
+</head>
+<body>
+    <div class="profile-container">
+        <h2>User Profile</h2>
+        <img id="profile-pic" src="default-avatar.png" alt="Profile Picture">
+        <h3 id="username">User</h3>
+    </div>
+
+    <script>
+        let user = JSON.parse(localStorage.getItem("user"));
+        if (user) {
+            document.getElementById("username").textContent = user.name;
+            document.getElementById("profile-pic").src = user.avatar;
+        }
+    </script>
+</body>
+</html>
