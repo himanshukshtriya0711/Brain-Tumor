@@ -84,3 +84,36 @@ def login_user(request):
         except User.DoesNotExist:
             return JsonResponse({'error': 'Not a user'}, status=400)  # Throw error if user does not exist
     return render(request, 'signup.html')  # Render login page for GET requests
+
+from django.shortcuts import render, redirect
+from .models import BrainTumorAssessment
+
+def assessment_form(request):
+    if request.method == "POST":
+        age = request.POST.get("age")
+        gender = request.POST.get("gender")
+        symptoms = ", ".join(request.POST.getlist("symptoms"))
+        duration = request.POST.get("duration")
+        conditions = request.POST.get("conditions")
+        conditions_image = request.FILES.get("conditions_image")
+        previous_diagnosis = request.POST.get("previous_diagnosis")
+        diagnosis_image = request.FILES.get("diagnosis_image")
+
+        BrainTumorAssessment.objects.create(
+            age=age,
+            gender=gender,
+            symptoms=symptoms,
+            duration=duration,
+            conditions=conditions,
+            conditions_image=conditions_image,
+            previous_diagnosis=previous_diagnosis,
+            diagnosis_image=diagnosis_image,
+        )
+
+        return redirect("dashboard")
+
+    return render(request, "assessment_form.html")
+
+def dashboard(request):
+    assessments = BrainTumorAssessment.objects.all()
+    return render(request, "dashboard.html", {"assessments": assessments})

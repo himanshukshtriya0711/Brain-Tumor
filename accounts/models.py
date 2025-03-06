@@ -35,3 +35,23 @@ class User(models.Model):
 
     def __str__(self):
         return self.email
+    
+
+
+from django.db import models
+
+class BrainTumorAssessment(models.Model):
+    age = models.IntegerField()
+    gender = models.CharField(max_length=10)
+    symptoms = models.TextField()
+    duration = models.IntegerField()
+    conditions = models.TextField(blank=True, null=True)
+    conditions_image = models.ImageField(upload_to='conditions_images/', blank=True, null=True)
+    previous_diagnosis = models.TextField(blank=True, null=True)
+    diagnosis_image = models.ImageField(upload_to='diagnosis_images/', blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Assessment - {self.age} years old ({self.gender})"
+
+
