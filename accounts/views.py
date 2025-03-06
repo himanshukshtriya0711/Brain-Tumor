@@ -59,6 +59,11 @@ def signup(request):
         user.save()
 
         messages.success(request, "Signup successful! You can now log in.")
-        return redirect('user_medical_info')
+        return redirect('user_medi_info')
 
     return render(request, 'accounts/signup.html')
+
+def dashboard(request):
+    return render(request, 'accounts/dashboard.html')  # Create this template   
+
+
