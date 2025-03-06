@@ -5,6 +5,10 @@ from django.contrib.auth.hashers import make_password
 from .models import UserModel
 from django.shortcuts import render
 from django.contrib import messages
+from django.views.decorators.csrf import csrf_exempt
+from django.contrib.auth.hashers import check_password
+from django.http import JsonResponse
+
 
 def home(request):
     return render(request, 'accounts/home.html')  # Create this template
@@ -67,3 +71,16 @@ def dashboard(request):
     return render(request, 'accounts/dashboard.html')  # Create this template   
 
 
+def login_user(request):
+    if request.method == "POST":
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        try:
+            user = User.objects.get(email=email)
+            if check_password(password, user.password):
+                return redirect('dashboard')  # Redirect to dashboard if authentication succeeds
+            else:
+                return JsonResponse({'error': 'Not a user'}, status=400)  # Throw error if password is incorrect
+        except User.DoesNotExist:
+            return JsonResponse({'error': 'Not a user'}, status=400)  # Throw error if user does not exist
+    return render(request, 'signup.html')  # Render login page for GET requests
