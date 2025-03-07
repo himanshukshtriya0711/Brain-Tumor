@@ -8,33 +8,44 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime
+from django.views.decorators.csrf import ensure_csrf_cookie
 
+@ensure_csrf_cookie
 def home(request):
     return render(request, 'accounts/home.html')  
 
+@ensure_csrf_cookie
 def user_login(request):
     if request.method == "POST":
         email = request.POST.get('email')
         password = request.POST.get('password')
-        user = authenticate(request, username=email, password=password)
-        if user is not None:
-            login(request, user)
-            return redirect('dashboard')
-        else:
-            messages.error(request, "Invalid email or password")
+        
+        try:
+            user = User.objects.get(email=email)
+            if user.check_password(password):
+                login(request, user)
+                messages.success(request, "Successfully logged in!")
+                return redirect('dashboard')
+        except User.DoesNotExist:
+            pass
+        
+        messages.error(request, "Invalid email or password")
     return render(request, 'accounts/login.html')
 
-
-
+@login_required
 def prescriptions_view(request):
-    return render(request, 'prescriptions.html')
+    prescriptions = Prescription.objects.filter(
+        patient=request.user.usermodel
+    ).order_by('-date')
+    return render(request, 'accounts/prescriptions.html', {'prescriptions': prescriptions})
 
-
+@login_required
 def logout_view(request):
     logout(request)
     messages.success(request, "Successfully logged out!")
     return redirect('login')
 
+@ensure_csrf_cookie
 def signup(request):
     if request.method == "POST":
         first_name = request.POST.get('first_name')
@@ -58,6 +69,7 @@ def signup(request):
             return render(request, 'accounts/signup.html')
 
         user = UserModel(
+            username=email,
             first_name=first_name,
             last_name=last_name,
             phone=phone,
