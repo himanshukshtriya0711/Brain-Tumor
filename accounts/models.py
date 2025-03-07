@@ -1,46 +1,21 @@
 from django.db import models
-from django.contrib.auth.hashers import make_password
+from django.contrib.auth.models import User
 
-class UserModel(models.Model):
-    first_name = models.CharField(max_length=50)
-    last_name = models.CharField(max_length=50)
-    phone = models.CharField(max_length=15, unique=True)
+class UserModel(User):
+    phone = models.CharField(max_length=15, blank=True)
     address1 = models.CharField(max_length=255)
-    address2 = models.CharField(max_length=255, blank=True, null=True)
-    state = models.CharField(max_length=50)
-    country = models.CharField(max_length=50)
+    address2 = models.CharField(max_length=255, blank=True)
+    state = models.CharField(max_length=100)
+    country = models.CharField(max_length=100)
     zip_code = models.CharField(max_length=10)
-    email = models.EmailField(unique=True)
-    password = models.CharField(max_length=100)  # Store hashed password later
-
-    def __str__(self):
-        return self.email
-
-from django.db import models
-from django.contrib.auth import authenticate
-from django.shortcuts import redirect
-from django.contrib import messages
-from django.contrib.auth.hashers import check_password
-
-# Custom User Model
-class User(models.Model):
-    email = models.EmailField(unique=True)
-    username = models.CharField(max_length=150, unique=True)
-    password = models.CharField(max_length=128)
-
-    def save(self, *args, **kwargs):
-        if not self.pk:  # Only hash password if the user is new
-            self.password = make_password(self.password)
-        super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.email
-    
-
-
-from django.db import models
 
 class BrainTumorAssessment(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    result = models.CharField(max_length=255, default="Pending")
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+class UserMedicalInfo(models.Model):
+    user = models.ForeignKey(UserModel, on_delete=models.CASCADE)
     age = models.IntegerField()
     gender = models.CharField(max_length=10)
     symptoms = models.TextField()
@@ -52,6 +27,5 @@ class BrainTumorAssessment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"Assessment - {self.age} years old ({self.gender})"
-
-
+        return f"{self.user.username} - Medical Info"
+    

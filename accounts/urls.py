@@ -9,6 +9,7 @@ urlpatterns = [
     path('user_medi_info/', user_medi_info, name='user_medi_info'),  # Add user_medi_info URL
     path('dashboard/', dashboard, name='dashboard'),  # Add dashboard URL
     
+    
 ]
 
 

@@ -1,30 +1,28 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.models import User
-from django.contrib.auth import login
-from django.contrib.auth.hashers import make_password
-from .models import UserModel
-from django.shortcuts import render
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.hashers import make_password, check_password
+from .models import UserModel, BrainTumorAssessment, UserMedicalInfo    
 from django.contrib import messages
-from django.views.decorators.csrf import csrf_exempt
-from django.contrib.auth.hashers import check_password
 from django.http import JsonResponse
-
 
 def home(request):
     return render(request, 'accounts/home.html')  # Create this template
 
-
-
 def user_login(request):
-    return render(request, 'accounts/login.html')  # Create this template
-
-def user_medi_info(request):
-    return render(request, 'accounts/user_medi_info.html')  # Create this template
-
+    if request.method == "POST":
+        email = request.POST.get('email')
+        password = request.POST.get('password')
+        user = authenticate(request, username=email, password=password)
+        if user is not None:
+            login(request, user)
+            return redirect('dashboard')
+        else:
+            messages.error(request, "Invalid email or password")
+    return render(request, 'accounts/login.html')
 
 def signup(request):
     if request.method == "POST":
-        print(request.POST)
         first_name = request.POST.get('first_name')
         last_name = request.POST.get('last_name')
         phone = request.POST.get('phone')
@@ -68,27 +66,10 @@ def signup(request):
     return render(request, 'accounts/signup.html')
 
 def dashboard(request):
-    return render(request, 'accounts/dashboard.html')  # Create this template   
+    assessments = BrainTumorAssessment.objects.all()
+    return render(request, 'accounts/dashboard.html', {"assessments": assessments})
 
-
-def login_user(request):
-    if request.method == "POST":
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        try:
-            user = User.objects.get(email=email)
-            if check_password(password, user.password):
-                return redirect('dashboard')  # Redirect to dashboard if authentication succeeds
-            else:
-                return JsonResponse({'error': 'Not a user'}, status=400)  # Throw error if password is incorrect
-        except User.DoesNotExist:
-            return JsonResponse({'error': 'Not a user'}, status=400)  # Throw error if user does not exist
-    return render(request, 'signup.html')  # Render login page for GET requests
-
-from django.shortcuts import render, redirect
-from .models import BrainTumorAssessment
-
-def assessment_form(request):
+def user_medi_info(request):
     if request.method == "POST":
         age = request.POST.get("age")
         gender = request.POST.get("gender")
@@ -99,7 +80,11 @@ def assessment_form(request):
         previous_diagnosis = request.POST.get("previous_diagnosis")
         diagnosis_image = request.FILES.get("diagnosis_image")
 
-        BrainTumorAssessment.objects.create(
+        # Assuming user is logged in
+        user = UserModel.objects.get(id=request.user.id)
+
+        UserMedicalInfo.objects.create(
+            user=user,
             age=age,
             gender=gender,
             symptoms=symptoms,
@@ -110,10 +95,9 @@ def assessment_form(request):
             diagnosis_image=diagnosis_image,
         )
 
-        return redirect("dashboard")
+        messages.success(request, "Medical information saved successfully!")
 
-    return render(request, "assessment_form.html")
+        return redirect("dashboard")  # Redirect to same page after submission
 
-def dashboard(request):
-    assessments = BrainTumorAssessment.objects.all()
-    return render(request, "dashboard.html", {"assessments": assessments})
+    return render(request, "accounts/user_medi_info.html")
+

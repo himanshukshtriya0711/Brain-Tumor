@@ -1,9 +1,146 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>User Medical Information</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Assessment Form</title>
+    <style>
+        body {
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            font-family: "Arial", sans-serif;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .container {
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            animation: fadeIn 1.5s ease-in-out;
+            margin: 20px 0;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            font-size: 2.5rem;
+            color: #00ffcc;
+            text-shadow: 0 0 10px #f0b461, 0 0 20px #e5a546;
+        }
+
+        h2 {
+            color: #00ffcc;
+            margin-top: 20px;
+            font-size: 1.5rem;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        label {
+            text-align: left;
+            font-weight: bold;
+            margin-top: 10px;
+            color: #00ffcc;
+        }
+
+        input, select, textarea, button {
+            width: 100%;
+            margin: 10px 0;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, select:focus, textarea:focus {
+            background: rgba(255, 255, 255, 0.3);
+            outline: none;
+            box-shadow: 0 0 10px #00ffcc;
+        }
+
+        input[type="file"] { padding: 10px; }
+
+        button {
+            background: linear-gradient(135deg, #0099ff, #0066cc);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            padding: 15px;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #0066cc, #0099ff);
+            transform: scale(1.05);
+            box-shadow: 0 0 20px #0099ff;
+        }
+    </style>
 </head>
 <body>
-    <h1>User Medical Information Page</h1>
+    <div class="container">
+        <h1>Brain Tumor Assessment</h1>
+        
+        <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+            
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" required />
+
+            <label for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+            </select>
+
+            <h2>Symptoms Experienced</h2>
+            <label><input type="checkbox" name="symptoms" value="headaches"> Headaches</label>
+            <label><input type="checkbox" name="symptoms" value="seizures"> Seizures</label>
+            <label><input type="checkbox" name="symptoms" value="dizziness"> Dizziness</label>
+            <label><input type="checkbox" name="symptoms" value="vision_problems"> Vision Problems</label>
+
+            <label for="duration">Duration of Symptoms (in weeks):</label>
+            <input type="number" id="duration" name="duration" required />
+
+            <h2>Existing Medical Conditions</h2>
+            <textarea id="conditions" name="conditions" rows="4" placeholder="List any existing medical conditions..."></textarea>
+
+            <label for="conditions_image">Upload Related Image:</label>
+            <input type="file" id="conditions_image" name="conditions_image" accept="image/*">
+
+            <h2>Previous Diagnosis or Treatments</h2>
+            <textarea id="previous_diagnosis" name="previous_diagnosis" rows="4" placeholder="Describe any previous diagnoses or treatments..."></textarea>
+
+            <label for="diagnosis_image">Upload Related Image:</label>
+            <input type="file" id="diagnosis_image" name="diagnosis_image" accept="image/*">
+
+            <button type="submit">Submit</button>
+        </form>
+    </div>
 </body>
 </html>
