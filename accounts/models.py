@@ -12,6 +12,69 @@ class UserModel(User):
     def __str__(self):
         return self.email
 
+class Doctor(models.Model):
+    name = models.CharField(max_length=100)
+    specialization = models.CharField(max_length=100)
+    experience = models.IntegerField()
+    photo = models.ImageField(upload_to='doctor_photos/', default='doctor_photos/default.png')
+    qualification = models.CharField(max_length=200)
+    description = models.TextField()
+    available_days = models.CharField(max_length=100)  # Store as comma-separated days
+    available_times = models.CharField(max_length=100)  # Store as comma-separated time slots
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Dr. {self.name} - {self.specialization}"
+
+class Appointment(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed')
+    ]
+    
+    patient = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    date = models.DateField()
+    time = models.TimeField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    reason = models.TextField()
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-time']
+
+    def __str__(self):
+        return f"{self.patient.email} - Dr. {self.doctor.name} - {self.date}"
+
+class Prescription(models.Model):
+    patient = models.ForeignKey(UserModel, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE)
+    appointment = models.ForeignKey(Appointment, on_delete=models.CASCADE, null=True, blank=True)
+    date = models.DateField()
+    diagnosis = models.TextField()
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.patient.email} - {self.date}"
+
+class Medicine(models.Model):
+    prescription = models.ForeignKey(Prescription, on_delete=models.CASCADE, related_name='medicines')
+    name = models.CharField(max_length=100)
+    dosage = models.CharField(max_length=100)
+    frequency = models.CharField(max_length=100)
+    duration = models.CharField(max_length=100)
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.name} - {self.prescription.patient.email}"
+
 class BrainTumorAssessment(models.Model):
     STATUS_CHOICES = [
         ('pending', 'Pending'),

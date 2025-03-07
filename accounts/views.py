@@ -1,11 +1,13 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import login, authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.hashers import make_password, check_password
-from .models import UserModel, BrainTumorAssessment, UserMedicalInfo    
+from .models import UserModel, BrainTumorAssessment, UserMedicalInfo, Doctor, Appointment, Prescription
 from django.contrib import messages
 from django.http import JsonResponse
+from django.utils import timezone
+from datetime import datetime
 
 def home(request):
     return render(request, 'accounts/home.html')  
@@ -21,6 +23,12 @@ def user_login(request):
         else:
             messages.error(request, "Invalid email or password")
     return render(request, 'accounts/login.html')
+
+
+
+def prescriptions_view(request):
+    return render(request, 'prescriptions.html')
+
 
 def logout_view(request):
     logout(request)
@@ -112,13 +120,28 @@ def upload_scan(request):
     if request.method == "POST":
         scan_image = request.FILES.get('scan_image')
         if scan_image:
-            assessment = BrainTumorAssessment.objects.create(
-                user=request.user,
-                scan_image=scan_image,
-                status='pending'
-            )
-            messages.success(request, "Scan uploaded successfully! Processing...")
-            return redirect('view_results')
+            # Check file size (10MB limit)
+            if scan_image.size > 10 * 1024 * 1024:
+                messages.error(request, "File size must be less than 10MB")
+                return redirect('upload_scan')
+            
+            # Check file type
+            allowed_types = ['image/jpeg', 'image/png', 'image/gif']
+            if scan_image.content_type not in allowed_types:
+                messages.error(request, "Please upload a valid image file (JPG, PNG, or GIF)")
+                return redirect('upload_scan')
+            
+            try:
+                assessment = BrainTumorAssessment.objects.create(
+                    user=request.user.usermodel,
+                    scan_image=scan_image,
+                    status='pending'
+                )
+                messages.success(request, "Scan uploaded successfully! Processing...")
+                return redirect('view_results')
+            except Exception as e:
+                messages.error(request, "An error occurred while uploading your scan. Please try again.")
+                return redirect('upload_scan')
         else:
             messages.error(request, "Please select a scan image to upload.")
     
@@ -164,3 +187,71 @@ def user_medi_info(request):
         return redirect("dashboard")  
 
     return render(request, "accounts/user_medi_info.html")
+
+@login_required
+def appointments(request):
+    upcoming_appointments = Appointment.objects.filter(
+        patient=request.user.usermodel,
+        date__gte=timezone.now().date()
+    ).order_by('date', 'time')
+    
+    doctors = Doctor.objects.all().order_by('-experience')
+    
+    return render(request, 'accounts/appointments.html', {
+        'upcoming_appointments': upcoming_appointments,
+        'doctors': doctors
+    })
+
+@login_required
+def book_appointment(request):
+    if request.method == 'POST':
+        doctor_id = request.POST.get('doctor_id')
+        date_str = request.POST.get('date')
+        time_str = request.POST.get('time')
+        reason = request.POST.get('reason')
+        
+        try:
+            doctor = Doctor.objects.get(id=doctor_id)
+            date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            time = datetime.strptime(time_str, '%H:%M').time()
+            
+            # Check if appointment slot is available
+            existing_appointment = Appointment.objects.filter(
+                doctor=doctor,
+                date=date,
+                time=time,
+                status__in=['pending', 'confirmed']
+            ).exists()
+            
+            if existing_appointment:
+                messages.error(request, 'This time slot is already booked. Please choose another time.')
+                return redirect('appointments')
+            
+            # Create new appointment
+            Appointment.objects.create(
+                patient=request.user.usermodel,
+                doctor=doctor,
+                date=date,
+                time=time,
+                reason=reason,
+                status='pending'
+            )
+            
+            messages.success(request, 'Appointment booked successfully! We will confirm it shortly.')
+        except (Doctor.DoesNotExist, ValueError) as e:
+            messages.error(request, 'Invalid appointment details. Please try again.')
+        
+    return redirect('appointments')
+
+@login_required
+def cancel_appointment(request, appointment_id):
+    if request.method == 'POST':
+        appointment = get_object_or_404(Appointment, id=appointment_id, patient=request.user.usermodel)
+        if appointment.status in ['pending', 'confirmed']:
+            appointment.status = 'cancelled'
+            appointment.save()
+            messages.success(request, 'Appointment cancelled successfully.')
+        else:
+            messages.error(request, 'Cannot cancel this appointment.')
+    
+    return redirect('appointments')

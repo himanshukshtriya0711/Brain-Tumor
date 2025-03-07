@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Brain Care{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .card {
+            @apply bg-white rounded-lg shadow-md;
+        }
+        .btn {
+            @apply px-4 py-2 rounded-lg font-medium transition-colors;
+        }
+        .btn-primary {
+            @apply bg-blue-600 text-white hover:bg-blue-700;
+        }
+        .btn-secondary {
+            @apply bg-gray-200 text-gray-700 hover:bg-gray-300;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-white shadow-md">
+            <div class="p-4">
+                <h1 class="text-2xl font-bold text-blue-600">Brain Care</h1>
+            </div>
+            <nav class="mt-4">
+                <a href="{% url 'dashboard' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/dashboard/' %}bg-blue-50 text-blue-600{% endif %}">
+                    <i class="ri-dashboard-line mr-3 text-lg"></i>
+                    Dashboard
+                </a>
+                <a href="{% url 'personal_info' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/personal_info/' %}bg-blue-50 text-blue-600{% endif %}">
+                    <i class="ri-user-line mr-3 text-lg"></i>
+                    Profile
+                </a>
+                <a href="{% url 'diagnostics' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/diagnostics/' %}bg-blue-50 text-blue-600{% endif %}">
+                    <i class="ri-heart-pulse-line mr-3 text-lg"></i>
+                    Diagnostics
+                </a>
+                <a href="{% url 'appointments' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/appointments/' %}bg-blue-50 text-blue-600{% endif %}">
+                    <i class="ri-calendar-check-line mr-3 text-lg"></i>
+                    Appointments
+                </a>
+                <a href="{% url 'prescriptions' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/prescriptions/' %}bg-blue-50 text-blue-600{% endif %}">
+                    <i class="ri-file-list-3-line mr-3 text-lg"></i>
+                    Prescriptions
+                </a>
+                <a href="{% url 'upload_scan' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/upload_scan/' %}bg-blue-50 text-blue-600{% endif %}">
+                    <i class="ri-upload-cloud-line mr-3 text-lg"></i>
+                    Upload Scan
+                </a>
+            </nav>
+            <div class="mt-auto p-4 border-t">
+                <a href="{% url 'logout' %}" class="flex items-center text-gray-700 hover:text-red-600">
+                    <i class="ri-logout-box-line mr-3 text-lg"></i>
+                    Logout
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 overflow-y-auto">
+            <header class="bg-white shadow-sm">
+                <div class="max-w-7xl mx-auto py-4 px-4 sm:px-6 lg:px-8">
+                    <h1 class="text-2xl font-semibold text-gray-800">{% block header %}{% endblock %}</h1>
+                </div>
+            </header>
+
+            <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
+                {% if messages %}
+                <div class="mb-6">
+                    {% for message in messages %}
+                    <div class="p-4 rounded-lg {% if message.tags == 'success' %}bg-green-100 text-green-700{% elif message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-blue-100 text-blue-700{% endif %}">
+                        {{ message }}
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

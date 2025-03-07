@@ -1,133 +1,202 @@
+{% extends 'accounts/base.html' %}
 {% load static %}
 
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brain Tumor Detection - Dashboard</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Custom CSS -->
-    <style>
-        .sidebar {
-            min-height: 100vh;
-            background: #2c3e50;
-            color: white;
-        }
-        .sidebar .nav-link {
-            color: rgba(255,255,255,.8);
-            padding: 15px 25px;
-            transition: all 0.3s;
-        }
-        .sidebar .nav-link:hover {
-            color: white;
-            background: rgba(255,255,255,.1);
-        }
-        .sidebar .nav-link.active {
-            background: rgba(255,255,255,.2);
-            color: white;
-        }
-        .main-content {
-            min-height: 100vh;
-            background: #f8f9fa;
-        }
-        .navbar-brand {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-        .user-profile {
-            padding: 20px;
-            text-align: center;
-            border-bottom: 1px solid rgba(255,255,255,.1);
-            margin-bottom: 20px;
-        }
-        .user-profile img {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            margin-bottom: 10px;
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <div class="col-md-3 col-lg-2 px-0 sidebar">
-                <div class="user-profile">
-                    <img src="{% static 'images/default-avatar.png' %}" alt="Profile Image">
-                    <h6 class="mb-0">{{ request.user.username }}</h6>
-                </div>
-                <nav class="nav flex-column">
-                    <a class="nav-link active" href="{% url 'personal_info' %}">
-                        <i class="bi bi-person-circle"></i> Personal Information
-                    </a>
-                    <a class="nav-link" href="{% url 'diagnostics' %}">
-                        <i class="bi bi-clipboard2-pulse"></i> Diagnostics
-                    </a>
-                    <a class="nav-link" href="{% url 'upload_scan' %}">
-                        <i class="bi bi-upload"></i> Upload Scan
-                    </a>
-                    <a class="nav-link" href="{% url 'view_results' %}">
-                        <i class="bi bi-file-medical"></i> View Results
-                    </a>
-                    <div class="mt-auto">
-                        <a class="nav-link text-danger" href="{% url 'logout' %}">
-                            <i class="bi bi-box-arrow-right"></i> Logout
-                        </a>
-                    </div>
-                </nav>
-            </div>
+{% block title %}Dashboard - Brain Care{% endblock %}
 
-            <!-- Main Content -->
-            <div class="col-md-9 col-lg-10 main-content px-4">
-                <nav class="navbar navbar-expand-lg navbar-light">
-                    <div class="container-fluid">
-                        <span class="navbar-brand">Brain Tumor Detection Portal</span>
-                    </div>
-                </nav>
-                
-                <div class="content-wrapper p-4">
-                    {% block content %}
-                    <div class="row">
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Quick Upload</h5>
-                                    <p class="card-text">Upload a brain scan image for instant analysis.</p>
-                                    <a href="{% url 'upload_scan' %}" class="btn btn-primary">Upload Scan</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Recent Results</h5>
-                                    <p class="card-text">View your recent scan analysis results.</p>
-                                    <a href="{% url 'view_results' %}" class="btn btn-primary">View Results</a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="col-md-6 col-lg-4 mb-4">
-                            <div class="card">
-                                <div class="card-body">
-                                    <h5 class="card-title">Personal Info</h5>
-                                    <p class="card-text">Update your personal information and preferences.</p>
-                                    <a href="{% url 'personal_info' %}" class="btn btn-primary">Update Info</a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endblock %}
-                </div>
+{% block header %}Welcome, {{ user.first_name }}{% endblock %}
+
+{% block content %}
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Health Status Card -->
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Health Status</h3>
+            <span class="text-sm text-blue-600">Last Updated: {{ medical_info.updated_at|date:"M d, Y" }}</span>
+        </div>
+        <div class="space-y-4">
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Age</span>
+                <span class="font-medium">{{ medical_info.age }} years</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Gender</span>
+                <span class="font-medium">{{ medical_info.gender|title }}</span>
+            </div>
+            <div class="flex items-center justify-between">
+                <span class="text-gray-600">Symptoms Duration</span>
+                <span class="font-medium">{{ medical_info.duration }} months</span>
             </div>
         </div>
     </div>
 
-    <!-- Bootstrap Bundle with Popper -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <!-- Bootstrap Icons -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css">
-</body>
-</html>
+    <!-- Recent Scan Analysis -->
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Recent Analysis</h3>
+            <a href="{% url 'diagnostics' %}" class="text-sm text-blue-600 hover:underline">View All</a>
+        </div>
+        {% if latest_assessment %}
+        <div class="space-y-4">
+            <div class="relative">
+                <div class="flex items-center justify-center">
+                    <canvas id="confidenceChart" width="150" height="150"></canvas>
+                </div>
+                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                    <span class="block text-2xl font-bold text-blue-600">{{ latest_assessment.confidence }}%</span>
+                    <span class="text-sm text-gray-500">Confidence</span>
+                </div>
+            </div>
+            <div class="text-center mt-4">
+                <span class="px-3 py-1 rounded-full {% if latest_assessment.result == 'Tumor Detected' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ latest_assessment.result }}
+                </span>
+            </div>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="ri-file-warning-line text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500">No scan analysis available</p>
+            <a href="{% url 'upload_scan' %}" class="btn-primary inline-block mt-4">Upload Scan</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Upcoming Appointments -->
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Upcoming Appointments</h3>
+            <a href="{% url 'appointments' %}" class="text-sm text-blue-600 hover:underline">View All</a>
+        </div>
+        {% if upcoming_appointments %}
+        <div class="space-y-4">
+            {% for appointment in upcoming_appointments %}
+            <div class="flex items-start gap-4 p-3 rounded-lg {% if forloop.first %}bg-blue-50{% else %}hover:bg-gray-50{% endif %}">
+                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                    <i class="ri-calendar-line text-xl text-blue-600"></i>
+                </div>
+                <div>
+                    <h4 class="font-medium text-gray-800">Dr. {{ appointment.doctor_name }}</h4>
+                    <p class="text-sm text-gray-500">{{ appointment.date|date:"M d, Y" }} at {{ appointment.time }}</p>
+                    <span class="inline-block mt-1 text-xs px-2 py-1 rounded-full {% if appointment.status == 'confirmed' %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
+                        {{ appointment.status|title }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="ri-calendar-line text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500">No upcoming appointments</p>
+            <a href="{% url 'appointments' %}" class="btn-primary inline-block mt-4">Schedule Appointment</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Symptoms Timeline -->
+    <div class="card p-6 md:col-span-2">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Symptoms Timeline</h3>
+            <button class="text-sm text-blue-600 hover:underline" onclick="toggleSymptoms()">Show All</button>
+        </div>
+        {% if medical_info.symptoms %}
+        <div class="relative">
+            <canvas id="symptomsChart" height="100"></canvas>
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="ri-heart-pulse-line text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500">No symptoms recorded</p>
+            <a href="{% url 'personal_info' %}" class="btn-primary inline-block mt-4">Update Medical Info</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Prescriptions -->
+    <div class="card p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h3 class="text-lg font-semibold text-gray-800">Recent Prescriptions</h3>
+            <a href="{% url 'prescriptions' %}" class="text-sm text-blue-600 hover:underline">View All</a>
+        </div>
+        {% if recent_prescriptions %}
+        <div class="space-y-4">
+            {% for prescription in recent_prescriptions %}
+            <div class="p-3 rounded-lg hover:bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <h4 class="font-medium text-gray-800">{{ prescription.medicine_name }}</h4>
+                    <span class="text-sm text-gray-500">{{ prescription.date|date:"M d" }}</span>
+                </div>
+                <p class="text-sm text-gray-600 mt-1">{{ prescription.dosage }}</p>
+                <p class="text-xs text-gray-500 mt-1">Prescribed by Dr. {{ prescription.doctor_name }}</p>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center py-8">
+            <i class="ri-medicine-bottle-line text-4xl text-gray-400 mb-2"></i>
+            <p class="text-gray-500">No recent prescriptions</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+{% if latest_assessment %}
+// Confidence Chart
+const confidenceCtx = document.getElementById('confidenceChart').getContext('2d');
+new Chart(confidenceCtx, {
+    type: 'doughnut',
+    data: {
+        datasets: [{
+            data: [{{ latest_assessment.confidence }}, 100 - {{ latest_assessment.confidence }}],
+            backgroundColor: ['#2563eb', '#e2e8f0'],
+            borderWidth: 0
+        }]
+    },
+    options: {
+        cutout: '75%',
+        plugins: {
+            legend: {
+                display: false
+            },
+        }
+    }
+});
+{% endif %}
+
+{% if medical_info.symptoms %}
+// Symptoms Timeline Chart
+const symptomsCtx = document.getElementById('symptomsChart').getContext('2d');
+const symptomsData = {
+    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+    datasets: [{
+        label: 'Symptom Intensity',
+        data: [4, 3, 5, 2, 4, 3],
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        fill: true
+    }]
+};
+
+const symptomsChart = new Chart(symptomsCtx, {
+    type: 'line',
+    data: symptomsData,
+    options: {
+        responsive: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                max: 5
+            }
+        }
+    }
+});
+{% endif %}
+
+function toggleSymptoms() {
+    // Add toggle functionality here
+}
+</script>
+{% endblock %}

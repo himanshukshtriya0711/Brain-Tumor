@@ -1,37 +1,48 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
-    <link rel="stylesheet" href="/static/css/login.css">
+{% extends 'accounts/base.html' %}
+{% load static %}
 
-</head>
-<body>
+{% block title %}Login - Brain Care{% endblock %}
 
-    {% for message in messages %}
-    <h1>
-        {{ message }}
-    </h1>
-    {% endfor %}
-
-    <div class="login-container">
-        <h2>Login</h2>
-        <form action="#" method="POST">
+{% block content %}
+<div class="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div class="max-w-md w-full bg-white rounded-lg shadow-lg p-8">
+        <h2 class="text-2xl font-bold text-center text-gray-800 mb-8">Login to Brain Care</h2>
+        
+        <form method="post" class="space-y-6">
             {% csrf_token %}
-            <div class="input-group">
-                <label for="email">Email</label>
-                <input type="text" id="email" name="email" required>
-            </div>
-            <div class="input-group">
-                <label for="password">Password</label>
-                <input type="password" id="password" name="password" required>
-            </div>
-            <button type="submit"><a href ="{% url 'dashboard' %}"/>Login</button>
             
-            <!-- New User? Sign Up Link -->
-            <p class="signup-link">New user? <a href="{% url 'signup' %}">Sign Up</a></p>
+            <div>
+                <label for="email" class="block text-sm font-medium text-gray-700">Email Address</label>
+                <input type="email" name="email" id="email" required 
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            <div>
+                <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                <input type="password" name="password" id="password" required 
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
+            </div>
+
+            {% if messages %}
+            <div class="space-y-2">
+                {% for message in messages %}
+                <div class="text-red-600 text-sm">{{ message }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" 
+                class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                Sign In
+            </button>
         </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-sm text-gray-600">
+                Don't have an account? 
+                <a href="{% url 'signup' %}" class="font-medium text-blue-600 hover:text-blue-500">Sign up</a>
+            </p>
+        </div>
     </div>
-</body>
-</html>
+</div>
+{% endblock %}
