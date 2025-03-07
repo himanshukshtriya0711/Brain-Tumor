@@ -1,0 +1,95 @@
+{% extends 'accounts/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">Diagnostic History</h5>
+                    <a href="{% url 'upload_scan' %}" class="btn btn-light">Upload New Scan</a>
+                </div>
+                <div class="card-body">
+                    {% if assessments %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Scan Image</th>
+                                    <th>Status</th>
+                                    <th>Result</th>
+                                    <th>Confidence</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for assessment in assessments %}
+                                <tr>
+                                    <td>{{ assessment.created_at|date:"M d, Y" }}</td>
+                                    <td>
+                                        <img src="{{ assessment.scan_image.url }}" alt="Scan" class="img-thumbnail" style="max-width: 100px;">
+                                    </td>
+                                    <td>
+                                        {% if assessment.status == 'pending' %}
+                                        <span class="badge bg-warning">Pending</span>
+                                        {% elif assessment.status == 'completed' %}
+                                        <span class="badge bg-success">Completed</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Failed</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ assessment.result|default:"Pending" }}</td>
+                                    <td>{{ assessment.confidence|default:"-" }}%</td>
+                                    <td>
+                                        <a href="#" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#detailModal{{ assessment.id }}">
+                                            View Details
+                                        </a>
+                                    </td>
+                                </tr>
+
+                                <!-- Detail Modal -->
+                                <div class="modal fade" id="detailModal{{ assessment.id }}" tabindex="-1">
+                                    <div class="modal-dialog modal-lg">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Diagnostic Details</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <img src="{{ assessment.scan_image.url }}" alt="Scan" class="img-fluid rounded">
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <h6>Analysis Results</h6>
+                                                        <p><strong>Date:</strong> {{ assessment.created_at|date:"M d, Y H:i" }}</p>
+                                                        <p><strong>Status:</strong> {{ assessment.status|title }}</p>
+                                                        <p><strong>Result:</strong> {{ assessment.result|default:"Pending" }}</p>
+                                                        <p><strong>Confidence:</strong> {{ assessment.confidence|default:"-" }}%</p>
+                                                        {% if assessment.notes %}
+                                                        <p><strong>Notes:</strong> {{ assessment.notes }}</p>
+                                                        {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="mb-3">No diagnostic history found. Start by uploading a brain scan.</p>
+                        <a href="{% url 'upload_scan' %}" class="btn btn-primary">Upload Scan</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

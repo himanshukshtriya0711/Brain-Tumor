@@ -1,0 +1,95 @@
+{% extends 'accounts/dashboard.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container py-4">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Analysis Results</h5>
+                </div>
+                <div class="card-body">
+                    {% if assessments %}
+                        {% for assessment in assessments %}
+                        <div class="card mb-4">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <img src="{{ assessment.scan_image.url }}" alt="Brain Scan" class="img-fluid rounded">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <h5 class="card-title">Scan Analysis #{{ assessment.id }}</h5>
+                                            <span class="text-muted">{{ assessment.created_at|date:"M d, Y H:i" }}</span>
+                                        </div>
+                                        
+                                        <div class="mt-3">
+                                            <div class="row">
+                                                <div class="col-md-6">
+                                                    <p><strong>Status:</strong> 
+                                                        {% if assessment.status == 'pending' %}
+                                                        <span class="badge bg-warning">Pending</span>
+                                                        {% elif assessment.status == 'completed' %}
+                                                        <span class="badge bg-success">Completed</span>
+                                                        {% else %}
+                                                        <span class="badge bg-danger">Failed</span>
+                                                        {% endif %}
+                                                    </p>
+                                                    <p><strong>Result:</strong> {{ assessment.result|default:"Pending Analysis" }}</p>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    {% if assessment.confidence %}
+                                                    <div class="mb-3">
+                                                        <p class="mb-1"><strong>Confidence Score:</strong></p>
+                                                        <div class="progress">
+                                                            <div class="progress-bar bg-primary" role="progressbar" 
+                                                                style="width: {{ assessment.confidence }}%" 
+                                                                aria-valuenow="{{ assessment.confidence }}" 
+                                                                aria-valuemin="0" 
+                                                                aria-valuemax="100">
+                                                                {{ assessment.confidence }}%
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    {% endif %}
+                                                </div>
+                                            </div>
+
+                                            {% if assessment.result %}
+                                            <div class="alert {% if assessment.result == 'Tumor Detected' %}alert-warning{% else %}alert-info{% endif %} mt-3">
+                                                <h6 class="alert-heading">Analysis Summary</h6>
+                                                <p class="mb-0">
+                                                    {% if assessment.result == 'Tumor Detected' %}
+                                                    Our analysis indicates the presence of a tumor. Please consult with a healthcare professional for proper medical evaluation.
+                                                    {% else %}
+                                                    No tumor was detected in this scan. However, regular check-ups are recommended for continuous monitoring.
+                                                    {% endif %}
+                                                </p>
+                                            </div>
+                                            {% endif %}
+
+                                            {% if assessment.notes %}
+                                            <div class="mt-3">
+                                                <h6>Additional Notes:</h6>
+                                                <p class="mb-0">{{ assessment.notes }}</p>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <p class="mb-3">No analysis results found. Start by uploading a brain scan for analysis.</p>
+                        <a href="{% url 'upload_scan' %}" class="btn btn-primary">Upload New Scan</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
