@@ -26,3 +26,12 @@ urlpatterns = [
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
+from django.urls import path
+from .views import process_scan, view_results, download_pdf
+
+urlpatterns += [
+    path('process_scan/', process_scan, name='process_scan'),
+    path('view_results/', view_results, name='view_results'),
+    path('download_pdf/', download_pdf, name='download_pdf'),
+]

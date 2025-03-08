@@ -267,3 +267,74 @@ def cancel_appointment(request, appointment_id):
             messages.error(request, 'Cannot cancel this appointment.')
     
     return redirect('appointments')
+
+
+from django.shortcuts import render
+from django.core.files.storage import default_storage
+from django.http import JsonResponse, FileResponse
+from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import os
+from .utils.model_utils import load_detection_model, preprocess_image, predict_tumor
+
+model = load_detection_model()
+
+def process_scan(request):
+    if request.method == 'POST' and request.FILES.get('scan'):
+        scan = request.FILES['scan']
+        if scan.name.split('.')[-1].lower() not in ['jpg', 'jpeg']:
+            return JsonResponse({'error': 'Only JPG and JPEG files are allowed'}, status=400)
+
+        scan_path = default_storage.save('uploads/' + scan.name, scan)
+        full_scan_path = os.path.join(default_storage.location, scan_path)
+
+        img_array = preprocess_image(full_scan_path)
+        label, confidence = predict_tumor(model, img_array)
+
+        request.session['scan_result'] = {
+            'filename': scan.name,
+            'label': label,
+            'confidence': round(confidence, 2),
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
+def view_results(request):
+    result = request.session.get('scan_result', {})
+    return render(request, 'accounts/view_results.html', {'result': result})
+
+def download_pdf(request):
+    result = request.session.get('scan_result', {})
+    if not result:
+        return JsonResponse({'error': 'No scan result found'}, status=400)
+
+    pdf_path = os.path.join(default_storage.location, 'reports', f"{result['filename']}_report.pdf")
+    os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
+
+    c = canvas.Canvas(pdf_path, pagesize=letter)
+    c.drawString(100, 750, "Brain Tumor Detection Report")
+    c.drawString(100, 730, f"Scan Name: {result['filename']}")
+    c.drawString(100, 710, f"Prediction: {result['label']}")
+    c.drawString(100, 690, f"Confidence: {result['confidence']}%")
+    c.drawString(100, 670, f"Date & Time: {result['timestamp']}")
+
+    if result['confidence'] > 40:
+        story = "This result indicates a significant chance of tumor presence. We strongly recommend consulting a specialist for further diagnosis and medical support. Remember, early detection can save lives."
+    else:
+        story = "The scan suggests no strong evidence of tumor at this time, but regular checkups are always a good practice to maintain health. Stay cautious and take care."
+
+    c.drawString(100, 650, "Note:")
+    text_object = c.beginText(100, 630)
+    text_object.setTextOrigin(100, 630)
+    text_object.setFont("Helvetica", 10)
+    for line in story.split('. '):
+        text_object.textLine(line.strip())
+    c.drawText(text_object)
+
+    c.save()
+
+    return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=f"{result['filename']}_report.pdf")
+
