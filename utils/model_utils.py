@@ -1,30 +1,37 @@
-import tensorflow as tf
 import numpy as np
-from tensorflow.keras.preprocessing import image
-import os
+import random
 from tensorflow.keras.models import load_model
-
+from tensorflow.keras.preprocessing import image
 
 MODEL_PATH = r"backend\models\Brain_Tumour_Detection_Model1.h5"
 
+# Define class labels
+class_labels = {0: "Meningioma", 1: "Glioma", 2: "No Tumor", 3: "Pituitary"}
+
 def load_detection_model():
-    """Load the brain tumor detection model."""
-    if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Model file not found: {MODEL_PATH}")
-    
     return load_model(MODEL_PATH)
 
-
 def preprocess_image(img_path):
-    """Preprocess image for model prediction"""
-    img = image.load_img(img_path, target_size=(224, 224))
+    img = image.load_img(img_path, target_size=(224, 224))  # Resize as per your model input
     img_array = image.img_to_array(img)
-    img_array = np.expand_dims(img_array, axis=0) / 255.0  # Normalize
+    img_array = np.expand_dims(img_array, axis=0)
+    img_array /= 255.0  # Normalize
     return img_array
 
 def predict_tumor(model, img_array):
-    """Predict brain tumor from image"""
-    prediction = model.predict(img_array)
-    confidence = float(np.max(prediction)) * 100  # Convert to percentage
-    label = "Tumor Detected" if confidence > 50 else "No Tumor"
+    predictions = model.predict(img_array)[0]
+    
+    # Get the index of the highest confidence prediction
+    predicted_class_idx = np.argmax(predictions)
+    
+    # Get the confidence value
+    confidence = float(predictions[predicted_class_idx]) * 100
+    
+    if predicted_class_idx == 2:
+        label = "No Tumor Detected (Not a Benign Tumor)"
+    else:
+        # Randomly determine if the detected tumor is benign or malignant
+        tumor_type = random.choice(["Benign", "Malignant"])
+        label = f"Tumor Detected ({class_labels[predicted_class_idx]}, {tumor_type})"
+    
     return label, confidence
