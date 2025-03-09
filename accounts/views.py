@@ -335,7 +335,42 @@ def cancel_appointment(request, appointment_id):
     return redirect('appointments')
 
 
+<<<<<<< HEAD
 
+=======
+from django.shortcuts import render
+from django.core.files.storage import default_storage
+from django.http import JsonResponse, FileResponse
+from datetime import datetime
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+import os
+from .utils.model_utils import load_detection_model, preprocess_image, predict_tumor
+
+model = load_detection_model()
+
+def process_scan(request):
+    if request.method == 'POST' and request.FILES.get('scan'):
+        scan = request.FILES['scan']
+        if scan.name.split('.')[-1].lower() not in ['jpg', 'jpeg']:
+            return JsonResponse({'error': 'Only JPG and JPEG files are allowed'}, status=400)
+
+        scan_path = default_storage.save('uploads/' + scan.name, scan)
+        full_scan_path = os.path.join(default_storage.location, scan_path)
+
+        img_array = preprocess_image(full_scan_path)
+        label, confidence = predict_tumor(model, img_array)
+
+        request.session['scan_result'] = {
+            'filename': scan.name,
+            'label': label,
+            'confidence': round(confidence, 2),
+            'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
+        return JsonResponse({'success': True})
+
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+>>>>>>> 250ef7a5f66ea9288d8c6d459ff0d214642fcc80
 
 def view_results(request):
     result = request.session.get('scan_result', {})
@@ -373,6 +408,7 @@ def download_pdf(request):
 
     return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=f"{result['filename']}_report.pdf")
 
+<<<<<<< HEAD
 def preprocess_image(image_path):
     # Load the image with the target size
     img = load_img(image_path, target_size=(224, 224))
@@ -383,3 +419,5 @@ def preprocess_image(image_path):
     # Normalize the image data
     img_array /= 255.0
     return img_array
+=======
+>>>>>>> 250ef7a5f66ea9288d8c6d459ff0d214642fcc80
