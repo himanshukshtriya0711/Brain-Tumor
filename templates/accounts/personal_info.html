@@ -5,55 +5,55 @@
 <div class="container py-4">
     <div class="row">
         <div class="col-md-8 mx-auto">
-            <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Personal Information</h5>
+            <div class="card shadow-lg transform transition duration-300 hover:scale-105">
+                <div class="card-header bg-primary text-white text-center py-3">
+                    <h5 class="mb-0 font-semibold">Personal Information</h5>
                 </div>
-                <div class="card-body">
-                    <form method="POST">
+                <div class="card-body p-4">
+                    <form method="POST" class="space-y-4">
                         {% csrf_token %}
-                        <div class="row mb-3">
+                        <div class="row mb-3 gap-2">
                             <div class="col-md-6">
-                                <label class="form-label">First Name</label>
-                                <input type="text" class="form-control" name="first_name" value="{{ user.first_name }}">
+                                <label class="form-label font-medium">First Name</label>
+                                <input type="text" class="form-control border-gray-300 shadow-sm focus:ring focus:ring-blue-300 transition duration-300" name="first_name" value="{{ user.first_name }}">
                             </div>
                             <div class="col-md-6">
-                                <label class="form-label">Last Name</label>
-                                <input type="text" class="form-control" name="last_name" value="{{ user.last_name }}">
+                                <label class="form-label font-medium">Last Name</label>
+                                <input type="text" class="form-control border-gray-300 shadow-sm focus:ring focus:ring-blue-300 transition duration-300" name="last_name" value="{{ user.last_name }}">
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Email</label>
-                            <input type="email" class="form-control" name="email" value="{{ user.email }}">
+                            <label class="form-label font-medium">Email</label>
+                            <input type="email" class="form-control border-gray-300 shadow-sm focus:ring focus:ring-blue-300 transition duration-300" name="email" value="{{ user.email }}">
                         </div>
 
                         {% if medical_info %}
-                        <hr>
-                        <h6 class="mb-3">Medical Information</h6>
+                        <hr class="my-4">
+                        <h6 class="mb-3 text-lg font-semibold">Medical Information</h6>
                         <div class="row">
-                            <div class="col-md-6">
+                            <div class="col-md-6 space-y-2">
                                 <p><strong>Age:</strong> {{ medical_info.age }}</p>
                                 <p><strong>Gender:</strong> {{ medical_info.gender }}</p>
                                 <p><strong>Symptoms:</strong> {{ medical_info.symptoms }}</p>
                             </div>
-                            <div class="col-md-6">
+                            <div class="col-md-6 space-y-2">
                                 <p><strong>Duration:</strong> {{ medical_info.duration }}</p>
                                 <p><strong>Conditions:</strong> {{ medical_info.conditions }}</p>
                                 <p><strong>Previous Diagnosis:</strong> {{ medical_info.previous_diagnosis }}</p>
                             </div>
                         </div>
                         <div class="mt-3">
-                            <a href="{% url 'user_medi_info' %}" class="btn btn-outline-primary">Update Medical Information</a>
+                            <a href="{% url 'user_medi_info' %}" class="btn btn-outline-primary transform transition duration-300 hover:scale-105">Update Medical Information</a>
                         </div>
                         {% else %}
-                        <div class="alert alert-info">
+                        <div class="alert alert-info animate-pulse">
                             <p class="mb-0">No medical information found. Please add your medical information.</p>
-                            <a href="{% url 'user_medi_info' %}" class="btn btn-primary mt-2">Add Medical Information</a>
+                            <a href="{% url 'user_medi_info' %}" class="btn btn-primary mt-2 transform transition duration-300 hover:scale-105">Add Medical Information</a>
                         </div>
                         {% endif %}
 
                         <div class="mt-4">
-                            <button type="submit" class="btn btn-primary">Update Personal Information</button>
+                            <button type="submit" class="btn btn-primary w-full py-2 transition duration-300 transform hover:scale-105 hover:bg-blue-600">Update Personal Information</button>
                         </div>
                     </form>
                 </div>

@@ -79,7 +79,7 @@
         {% for doctor in doctors %}
         <div class="card overflow-hidden group">
             <div class="aspect-w-16 aspect-h-9">
-                <img src="{{ doctor.photo.url }}" alt="{{ doctor.name }}" class="w-full h-48 object-cover">
+                <img src="{% static 'images/male-doctor.webp' %}" alt="{{ doctor.name }}" class="w-full object-cover">
             </div>
             <div class="p-6">
                 <div class="flex justify-between items-start">
