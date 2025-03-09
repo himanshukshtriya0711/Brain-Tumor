@@ -8,18 +8,20 @@
 {% block content %}
 <div class="max-w-2xl mx-auto">
     <div class="card p-6">
-        <form method="post" enctype="multipart/form-data" class="space-y-6">
+        <form id="uploadForm" enctype="multipart/form-data" class="space-y-6">
             {% csrf_token %}
-            
+
             <div>
                 <label for="scan_image" class="block text-sm font-medium text-gray-700">Select Brain Scan Image</label>
                 <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                     <div class="space-y-1 text-center">
                         <i class="ri-upload-cloud-2-line text-4xl text-gray-400"></i>
                         <div class="flex text-sm text-gray-600">
-                            <label for="scan_image" class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500">
+                            <label for="scan_image"
+                                class="relative cursor-pointer bg-white rounded-md font-medium text-blue-600 hover:text-blue-500">
                                 <span>Upload a file</span>
-                                <input id="scan_image" name="scan_image" type="file" class="sr-only" accept="image/*" required>
+                                <input id="scan_image" name="scan_image" type="file" class="sr-only" accept="image/*"
+                                    required>
                             </label>
                             <p class="pl-1">or drag and drop</p>
                         </div>
@@ -34,36 +36,85 @@
             </div>
 
             <div class="flex justify-end">
-                <button type="submit" class="btn btn-primary">
+                <button type="button" id="uploadButton" class="btn btn-primary">
                     Upload and Analyze
                 </button>
             </div>
         </form>
+
+        <!-- Show prediction results -->
+        <div id="result" class="hidden mt-6 p-4 bg-gray-100 rounded-md">
+            <h3 class="text-lg font-medium text-gray-800">Prediction Result:</h3>
+            <p><strong>Filename:</strong> <span id="filename"></span></p>
+            <p><strong>Prediction:</strong> <span id="prediction"></span></p>
+            <p><strong>Confidence:</strong> <span id="confidence"></span>%</p>
+        </div>
     </div>
 </div>
 {% endblock %}
 
 {% block extra_scripts %}
 <script>
-document.getElementById('scan_image').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (file) {
-        if (file.size > 10 * 1024 * 1024) {
-            alert('File size must be less than 10MB');
-            this.value = '';
+
+    document.getElementById('scan_image').addEventListener('change', function (e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (file.size > 10 * 1024 * 1024) {
+                alert('File size must be less than 10MB');
+                this.value = '';
+                return;
+            }
+
+            const preview = document.getElementById('preview');
+            const scanPreview = document.getElementById('scan_preview');
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                scanPreview.src = e.target.result;
+                preview.classList.remove('hidden');
+            }
+            reader.readAsDataURL(file);
+        }
+    });
+
+    document.getElementById("uploadButton").addEventListener("click", async function () {
+        console.log("Uploading and analyzing scan...");
+        let fileInput = document.getElementById("scan_image");
+        if (!fileInput.files.length) {
+            alert("Please select an image!");
             return;
         }
-        
-        const preview = document.getElementById('preview');
-        const scanPreview = document.getElementById('scan_preview');
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            scanPreview.src = e.target.result;
-            preview.classList.remove('hidden');
+
+        let formData = new FormData();
+        formData.append("scan_image", fileInput.files[0]);
+
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+        const url = "{% url 'process_scan' %}";
+
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                body: formData,
+                headers: {
+                    'X-CSRFToken': csrfToken
+                }
+            });
+
+            const data = await response.json();
+            console.log(data);
+            if (!response.ok) {
+                alert(data.error || "An unexpected error occurred.");
+            } else {
+                document.getElementById("filename").textContent = data.filename;
+                document.getElementById("prediction").textContent = data.prediction;
+                document.getElementById("confidence").textContent = data.confidence;
+                document.getElementById("result").classList.remove("hidden");
+            }
+        } catch (error) {
+            console.error("Error:", error);
+            alert("Something went wrong. Please try again.");
         }
-        reader.readAsDataURL(file);
-    }
-});
+    });
+
 </script>
 {% endblock %}

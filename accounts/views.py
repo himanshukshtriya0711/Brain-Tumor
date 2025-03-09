@@ -8,7 +8,16 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.utils import timezone
 from datetime import datetime
+from django.core.files.storage import default_storage
 from django.views.decorators.csrf import ensure_csrf_cookie
+import os
+from .utils.model_utils import load_detection_model, preprocess_image, predict_tumor
+from reportlab.pdfgen import canvas
+from reportlab.lib.pagesizes import letter
+from django.http import FileResponse
+import re
+from tensorflow.keras.preprocessing.image import load_img, img_to_array
+import numpy as np
 
 @ensure_csrf_cookie
 def home(request):
@@ -152,12 +161,69 @@ def upload_scan(request):
                 messages.success(request, "Scan uploaded successfully! Processing...")
                 return redirect('view_results')
             except Exception as e:
-                messages.error(request, "An error occurred while uploading your scan. Please try again.")
+                messages.error(request, f"ERROR AT UPLOAD SCAN: {e}")
                 return redirect('upload_scan')
         else:
             messages.error(request, "Please select a scan image to upload.")
     
     return render(request, 'accounts/upload_scan.html')
+
+
+# Load model globally
+model = load_detection_model()
+
+def process_scan(request):
+    if request.method == 'POST' and request.FILES.get('scan_image'):
+        scan = request.FILES['scan_image']
+        print("Received file:", scan.name)
+
+        # Validate file extension
+        allowed_extensions = ['jpg', 'jpeg', 'png']
+        if scan.name.split('.')[-1].lower() not in allowed_extensions:
+            print("Invalid file extension:", scan.name.split('.')[-1].lower())
+            return JsonResponse({'error': 'Only JPG, JPEG, or PNG files are allowed'}, status=400)
+
+        try:
+            # Save the file securely
+            sanitized_filename = re.sub(r'[^a-zA-Z0-9_.-]', '_', scan.name)
+            print("Sanitized filename:", sanitized_filename)
+            scan_path = default_storage.save(f'uploads/{sanitized_filename}', scan)
+            full_scan_path = os.path.join(default_storage.location, scan_path)
+            print("File saved at:", full_scan_path)
+
+            # Preprocess and predict using the loaded model
+            img_array = preprocess_image(full_scan_path)
+            print("Image preprocessed, shape:", img_array.shape)
+
+            # Ensure the preprocessed image has the correct shape
+            if img_array.shape != (1, 224, 224, 3):
+                raise ValueError(f"Expected image shape (1, 224, 224, 3), but got {img_array.shape}")
+
+            label, confidence = predict_tumor(model, img_array)
+            print("Prediction:", label, confidence)
+
+            # Save results in the session or database
+            request.session['scan_result'] = {
+                'filename': sanitized_filename,
+                'label': label,
+                'confidence': round(confidence, 2),
+                'timestamp': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }
+            print("Results saved in session")
+
+            return JsonResponse({
+                'filename': sanitized_filename,
+                'prediction': label,
+                'confidence': round(confidence, 2)
+            })
+
+        except Exception as e:
+            print("Error during processing:", str(e))
+            return JsonResponse({'error': f'ERROR AT PROCESS SCAN {e}'}, status=500)
+
+    print("Invalid request method or no file uploaded")
+    return JsonResponse({'error': 'Invalid request'}, status=400)
+
 
 @login_required
 def view_results(request):
@@ -267,3 +333,53 @@ def cancel_appointment(request, appointment_id):
             messages.error(request, 'Cannot cancel this appointment.')
     
     return redirect('appointments')
+
+
+
+
+def view_results(request):
+    result = request.session.get('scan_result', {})
+    return render(request, 'accounts/view_results.html', {'result': result})
+
+def download_pdf(request):
+    result = request.session.get('scan_result', {})
+    if not result:
+        return JsonResponse({'error': 'No scan result found'}, status=400)
+
+    pdf_path = os.path.join(default_storage.location, 'reports', f"{result['filename']}_report.pdf")
+    os.makedirs(os.path.dirname(pdf_path), exist_ok=True)
+
+    c = canvas.Canvas(pdf_path, pagesize=letter)
+    c.drawString(100, 750, "Brain Tumor Detection Report")
+    c.drawString(100, 730, f"Scan Name: {result['filename']}")
+    c.drawString(100, 710, f"Prediction: {result['label']}")
+    c.drawString(100, 690, f"Confidence: {result['confidence']}%")
+    c.drawString(100, 670, f"Date & Time: {result['timestamp']}")
+
+    if result['confidence'] > 40:
+        story = "This result indicates a significant chance of tumor presence. We strongly recommend consulting a specialist for further diagnosis and medical support. Remember, early detection can save lives."
+    else:
+        story = "The scan suggests no strong evidence of tumor at this time, but regular checkups are always a good practice to maintain health. Stay cautious and take care."
+
+    c.drawString(100, 650, "Note:")
+    text_object = c.beginText(100, 630)
+    text_object.setTextOrigin(100, 630)
+    text_object.setFont("Helvetica", 10)
+    for line in story.split('. '):
+        text_object.textLine(line.strip())
+    c.drawText(text_object)
+
+    c.save()
+
+    return FileResponse(open(pdf_path, 'rb'), as_attachment=True, filename=f"{result['filename']}_report.pdf")
+
+def preprocess_image(image_path):
+    # Load the image with the target size
+    img = load_img(image_path, target_size=(224, 224))
+    # Convert the image to a numpy array
+    img_array = img_to_array(img)
+    # Expand dimensions to match the model's input shape
+    img_array = np.expand_dims(img_array, axis=0)
+    # Normalize the image data
+    img_array /= 255.0
+    return img_array

@@ -44,6 +44,10 @@
                     <i class="ri-heart-pulse-line mr-3 text-lg"></i>
                     Diagnostics
                 </a>
+                <a href="{% url 'user_medi_info' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/diagnostics/' %}bg-blue-50 text-blue-600{% endif %}">
+                    <i class="ri-heart-pulse-line mr-3 text-lg"></i>
+                    Give Your Medical Info
+                </a>
                 <a href="{% url 'appointments' %}" class="flex items-center px-4 py-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 {% if request.path == '/appointments/' %}bg-blue-50 text-blue-600{% endif %}">
                     <i class="ri-calendar-check-line mr-3 text-lg"></i>
                     Appointments

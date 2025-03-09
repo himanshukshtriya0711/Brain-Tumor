@@ -1,202 +1,698 @@
-{% extends 'accounts/base.html' %}
-{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Brain Care</title>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@2.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #eef2ff;
+            --primary-dark: #364fc7;
+            --success: #38b000;
+            --danger: #d90429;
+            --warning: #ff9e00;
+            --neutral-100: #f8fafc;
+            --neutral-200: #e2e8f0;
+            --neutral-300: #cbd5e1;
+            --neutral-600: #475569;
+            --neutral-700: #334155;
+            --neutral-900: #0f172a;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --radius-sm: 0.25rem;
+            --radius: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
 
-{% block title %}Dashboard - Brain Care{% endblock %}
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
 
-{% block header %}Welcome, {{ user.first_name }}{% endblock %}
+        body {
+            background-color: #f5f7fb;
+            color: var(--neutral-700);
+            display: flex;
+            min-height: 100vh;
+        }
 
-{% block content %}
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <!-- Health Status Card -->
-    <div class="card p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Health Status</h3>
-            <span class="text-sm text-blue-600">Last Updated: {{ medical_info.updated_at|date:"M d, Y" }}</span>
+        /* Sidebar styles */
+        .sidebar {
+            width: 240px;
+            background-color: white;
+            border-right: 1px solid var(--neutral-200);
+            padding: 1.5rem 0;
+            position: fixed;
+            height: 100vh;
+        }
+
+        .logo {
+            padding: 0 1.5rem 1.5rem;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo i {
+            font-size: 1.75rem;
+        }
+
+        .nav-menu {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: 0.25rem;
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1.5rem;
+            color: var(--neutral-600);
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.2s ease;
+            border-left: 3px solid transparent;
+        }
+
+        .nav-link:hover {
+            color: var(--primary);
+            background-color: var(--primary-light);
+        }
+
+        .nav-link.active {
+            color: var(--primary);
+            background-color: var(--primary-light);
+            border-left-color: var(--primary);
+        }
+
+        .nav-link i {
+            margin-right: 0.75rem;
+            font-size: 1.25rem;
+        }
+
+        .logout {
+            position: absolute;
+            bottom: 2rem;
+            width: 100%;
+        }
+
+        /* Main content styles */
+        .main-content {
+            flex: 1;
+            margin-left: 240px;
+            padding: 2rem;
+        }
+
+        .header {
+            margin-bottom: 2rem;
+        }
+
+        .welcome {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--neutral-900);
+            margin-bottom: 0.5rem;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1.5rem;
+        }
+
+        .grid-span-2 {
+            grid-column: span 2;
+        }
+
+        /* Card styles */
+        .card {
+            background-color: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.25rem 1.5rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .card-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: var(--neutral-900);
+        }
+
+        .text-sm {
+            font-size: 0.875rem;
+            color: var(--primary);
+        }
+
+        .hover\:underline:hover {
+            text-decoration: underline;
+        }
+
+        .card-content {
+            padding: 1.5rem;
+            flex: 1;
+        }
+
+        /* Health Status styles */
+        .health-status-list {
+            list-style: none;
+        }
+
+        .health-status-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--neutral-200);
+        }
+
+        .health-status-item:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+
+        .health-status-label {
+            font-weight: 500;
+            color: var(--neutral-600);
+        }
+
+        .health-status-value {
+            font-weight: 600;
+            color: var(--neutral-900);
+        }
+
+        /* Analysis styles */
+        .analysis-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1rem;
+        }
+
+        .analysis-chart {
+            position: relative;
+            width: 150px;
+            height: 150px;
+        }
+
+        .confidence-value {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+
+        .confidence-percentage {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .confidence-label {
+            font-size: 0.75rem;
+            color: var(--neutral-600);
+        }
+
+        .analysis-result {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+        }
+
+        .result-negative {
+            background-color: rgba(217, 4, 41, 0.1);
+            color: var(--danger);
+        }
+
+        .result-positive {
+            background-color: rgba(56, 176, 0, 0.1);
+            color: var(--success);
+        }
+
+        /* Appointment styles */
+        .appointment-list {
+            list-style: none;
+        }
+
+        .appointment-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.75rem;
+            transition: background-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .appointment-item:hover {
+            background-color: var(--neutral-100);
+        }
+
+        .appointment-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .bg-primary-light-10 {
+            background-color: var(--primary-light);
+        }
+
+        .appointment-icon {
+            height: 40px;
+            width: 40px;
+            background-color: var(--primary-light);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+            flex-shrink: 0;
+        }
+
+        .appointment-icon i {
+            color: var(--primary);
+            font-size: 1.25rem;
+        }
+
+        .appointment-info {
+            flex: 1;
+        }
+
+        .appointment-doctor {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .appointment-time {
+            font-size: 0.875rem;
+            color: var(--neutral-600);
+            margin-bottom: 0.25rem;
+        }
+
+        .appointment-status {
+            display: inline-block;
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: var(--radius-sm);
+        }
+
+        .status-confirmed {
+            background-color: rgba(56, 176, 0, 0.1);
+            color: var(--success);
+        }
+
+        .status-pending {
+            background-color: rgba(255, 158, 0, 0.1);
+            color: var(--warning);
+        }
+
+        /* Symptoms timeline styles */
+        .symptoms-timeline {
+            height: 250px;
+        }
+
+        /* Prescription styles */
+        .prescription-list {
+            list-style: none;
+        }
+
+        .prescription-item {
+            padding: 1rem;
+            border-radius: var(--radius-sm);
+            background-color: var(--neutral-100);
+            margin-bottom: 0.75rem;
+        }
+
+        .prescription-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .prescription-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.5rem;
+        }
+
+        .prescription-name {
+            font-weight: 600;
+        }
+
+        .prescription-date {
+            font-size: 0.75rem;
+            color: var(--neutral-600);
+        }
+
+        .prescription-dosage {
+            font-size: 0.875rem;
+            color: var(--neutral-700);
+            margin-bottom: 0.25rem;
+        }
+
+        .prescription-doctor {
+            font-size: 0.75rem;
+            color: var(--neutral-600);
+        }
+
+        /* Empty state styles */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .empty-icon {
+            font-size: 2.5rem;
+            color: var(--neutral-300);
+            margin-bottom: 1rem;
+        }
+
+        .empty-text {
+            color: var(--neutral-600);
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 500;
+            text-decoration: none;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .mt-4 {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="logo">
+            <i class="ri-brain-line"></i>
+            Brain Care
         </div>
-        <div class="space-y-4">
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600">Age</span>
-                <span class="font-medium">{{ medical_info.age }} years</span>
-            </div>
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600">Gender</span>
-                <span class="font-medium">{{ medical_info.gender|title }}</span>
-            </div>
-            <div class="flex items-center justify-between">
-                <span class="text-gray-600">Symptoms Duration</span>
-                <span class="font-medium">{{ medical_info.duration }} months</span>
-            </div>
+        <ul class="nav-menu">
+            <li class="nav-item">
+                <a href="{% url 'dashboard' %}" class="nav-link active">
+                    <i class="ri-dashboard-line"></i>
+                    Dashboard
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'user_medi_info' %}" class="nav-link active">
+                    <i class="ri-dashboard-line"></i>
+                    Give your Medical Info
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'personal_info' %}" class="nav-link">
+                    <i class="ri-user-line"></i>
+                    Profile
+                </a>
+            </li>
+            <!-- <li class="nav-item">
+                <a href="{% url 'diagnostics' %}" class="nav-link">
+                    <i class="ri-pulse-line"></i>
+                    Diagnostics
+                </a>
+            </li> -->
+            <li class="nav-item">
+                <a href="{% url 'appointments' %}" class="nav-link">
+                    <i class="ri-calendar-line"></i>
+                    Appointments
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'prescriptions' %}" class="nav-link">
+                    <i class="ri-medicine-bottle-line"></i>
+                    Prescriptions
+                </a>
+            </li>
+            <li class="nav-item">
+                <a href="{% url 'upload_scan' %}" class="nav-link">
+                    <i class="ri-upload-cloud-line"></i>
+                    Upload Scan
+                </a>
+            </li>
+        </ul>
+        <div class="logout">
+            <a href="{% url 'logout' %}" class="nav-link">
+                <i class="ri-logout-box-line"></i>
+                Logout
+            </a>
         </div>
-    </div>
+        
+    </aside>
 
-    <!-- Recent Scan Analysis -->
-    <div class="card p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Recent Analysis</h3>
-            <a href="{% url 'diagnostics' %}" class="text-sm text-blue-600 hover:underline">View All</a>
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="header">
+            <h1 class="welcome">Welcome, {{ user.first_name }}</h1>
         </div>
+
+        <div class="grid">
+            <!-- Health Status Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Health Status</h3>
+                    <span class="text-sm text-primary">Last Updated: {{ medical_info.updated_at|date:"M d, Y" }}</span>
+                </div>
+                <div class="card-content">
+                    <ul class="health-status-list">
+                        <li class="health-status-item">
+                            <span class="health-status-label">Age</span>
+                            <span class="health-status-value">{{ medical_info.age }} years</span>
+                        </li>
+                        <li class="health-status-item">
+                            <span class="health-status-label">Gender</span>
+                            <span class="health-status-value">{{ medical_info.gender|title }}</span>
+                        </li>
+                        <li class="health-status-item">
+                            <span class="health-status-label">Symptoms Duration</span>
+                            <span class="health-status-value">{{ medical_info.duration }} months</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Recent Scan Analysis -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Analysis</h3>
+                    <a href="{% url 'diagnostics' %}" class="text-sm hover:underline">View All</a>
+                </div>
+                <div class="card-content">
+                    {% if latest_assessment %}
+                    <div class="analysis-card">
+                        <div class="analysis-chart">
+                            <canvas id="confidenceChart" width="150" height="150"></canvas>
+                            <div class="confidence-value">
+                                <span class="confidence-percentage">{{ latest_assessment.confidence }}%</span>
+                                <span class="confidence-label">Confidence</span>
+                            </div>
+                        </div>
+                        <div class="text-center mt-4">
+                            <span class="analysis-result {% if latest_assessment.result == 'Tumor Detected' %}result-negative{% else %}result-positive{% endif %}">
+                                {{ latest_assessment.result }}
+                            </span>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="ri-file-warning-line empty-icon"></i>
+                        <p class="empty-text">No scan analysis available</p>
+                        <a href="{% url 'upload_scan' %}" class="btn btn-primary">Upload Scan</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Upcoming Appointments -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Upcoming Appointments</h3>
+                    <a href="{% url 'appointments' %}" class="text-sm hover:underline">View All</a>
+                </div>
+                <div class="card-content">
+                    {% if upcoming_appointments %}
+                    <ul class="appointment-list">
+                        {% for appointment in upcoming_appointments %}
+                        <li class="appointment-item {% if forloop.first %}bg-primary-light-10{% endif %}">
+                            <div class="appointment-icon">
+                                <i class="ri-calendar-line"></i>
+                            </div>
+                            <div class="appointment-info">
+                                <h4 class="appointment-doctor">Dr. {{ appointment.doctor_name }}</h4>
+                                <p class="appointment-time">{{ appointment.date|date:"M d, Y" }} at {{ appointment.time }}</p>
+                                <span class="appointment-status {% if appointment.status == 'confirmed' %}status-confirmed{% else %}status-pending{% endif %}">
+                                    {{ appointment.status|title }}
+                                </span>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="ri-calendar-line empty-icon"></i>
+                        <p class="empty-text">No upcoming appointments</p>
+                        <a href="{% url 'appointments' %}" class="btn btn-primary">Schedule Appointment</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Symptoms Timeline -->
+            <div class="card grid-span-2">
+                <div class="card-header">
+                    <h3 class="card-title">Symptoms Timeline</h3>
+                    <button class="text-sm hover:underline" onclick="toggleSymptoms()">Show All</button>
+                </div>
+                <div class="card-content">
+                    {% if medical_info.symptoms %}
+                    <div class="symptoms-timeline">
+                        <canvas id="symptomsChart" height="100"></canvas>
+                    </div>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="ri-heart-pulse-line empty-icon"></i>
+                        <p class="empty-text">No symptoms recorded</p>
+                        <a href="{% url 'personal_info' %}" class="btn btn-primary">Update Medical Info</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Recent Prescriptions -->
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Recent Prescriptions</h3>
+                    <a href="{% url 'prescriptions' %}" class="text-sm hover:underline">View All</a>
+                </div>
+                <div class="card-content">
+                    {% if recent_prescriptions %}
+                    <ul class="prescription-list">
+                        {% for prescription in recent_prescriptions %}
+                        <li class="prescription-item">
+                            <div class="prescription-header">
+                                <h4 class="prescription-name">{{ prescription.medicine_name }}</h4>
+                                <span class="prescription-date">{{ prescription.date|date:"M d" }}</span>
+                            </div>
+                            <p class="prescription-dosage">{{ prescription.dosage }}</p>
+                            <p class="prescription-doctor">Prescribed by Dr. {{ prescription.doctor_name }}</p>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <div class="empty-state">
+                        <i class="ri-medicine-bottle-line empty-icon"></i>
+                        <p class="empty-text">No recent prescriptions</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
         {% if latest_assessment %}
-        <div class="space-y-4">
-            <div class="relative">
-                <div class="flex items-center justify-center">
-                    <canvas id="confidenceChart" width="150" height="150"></canvas>
-                </div>
-                <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
-                    <span class="block text-2xl font-bold text-blue-600">{{ latest_assessment.confidence }}%</span>
-                    <span class="text-sm text-gray-500">Confidence</span>
-                </div>
-            </div>
-            <div class="text-center mt-4">
-                <span class="px-3 py-1 rounded-full {% if latest_assessment.result == 'Tumor Detected' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
-                    {{ latest_assessment.result }}
-                </span>
-            </div>
-        </div>
-        {% else %}
-        <div class="text-center py-8">
-            <i class="ri-file-warning-line text-4xl text-gray-400 mb-2"></i>
-            <p class="text-gray-500">No scan analysis available</p>
-            <a href="{% url 'upload_scan' %}" class="btn-primary inline-block mt-4">Upload Scan</a>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Upcoming Appointments -->
-    <div class="card p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Upcoming Appointments</h3>
-            <a href="{% url 'appointments' %}" class="text-sm text-blue-600 hover:underline">View All</a>
-        </div>
-        {% if upcoming_appointments %}
-        <div class="space-y-4">
-            {% for appointment in upcoming_appointments %}
-            <div class="flex items-start gap-4 p-3 rounded-lg {% if forloop.first %}bg-blue-50{% else %}hover:bg-gray-50{% endif %}">
-                <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                    <i class="ri-calendar-line text-xl text-blue-600"></i>
-                </div>
-                <div>
-                    <h4 class="font-medium text-gray-800">Dr. {{ appointment.doctor_name }}</h4>
-                    <p class="text-sm text-gray-500">{{ appointment.date|date:"M d, Y" }} at {{ appointment.time }}</p>
-                    <span class="inline-block mt-1 text-xs px-2 py-1 rounded-full {% if appointment.status == 'confirmed' %}bg-green-100 text-green-700{% else %}bg-yellow-100 text-yellow-700{% endif %}">
-                        {{ appointment.status|title }}
-                    </span>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center py-8">
-            <i class="ri-calendar-line text-4xl text-gray-400 mb-2"></i>
-            <p class="text-gray-500">No upcoming appointments</p>
-            <a href="{% url 'appointments' %}" class="btn-primary inline-block mt-4">Schedule Appointment</a>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Symptoms Timeline -->
-    <div class="card p-6 md:col-span-2">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Symptoms Timeline</h3>
-            <button class="text-sm text-blue-600 hover:underline" onclick="toggleSymptoms()">Show All</button>
-        </div>
-        {% if medical_info.symptoms %}
-        <div class="relative">
-            <canvas id="symptomsChart" height="100"></canvas>
-        </div>
-        {% else %}
-        <div class="text-center py-8">
-            <i class="ri-heart-pulse-line text-4xl text-gray-400 mb-2"></i>
-            <p class="text-gray-500">No symptoms recorded</p>
-            <a href="{% url 'personal_info' %}" class="btn-primary inline-block mt-4">Update Medical Info</a>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- Recent Prescriptions -->
-    <div class="card p-6">
-        <div class="flex items-center justify-between mb-4">
-            <h3 class="text-lg font-semibold text-gray-800">Recent Prescriptions</h3>
-            <a href="{% url 'prescriptions' %}" class="text-sm text-blue-600 hover:underline">View All</a>
-        </div>
-        {% if recent_prescriptions %}
-        <div class="space-y-4">
-            {% for prescription in recent_prescriptions %}
-            <div class="p-3 rounded-lg hover:bg-gray-50">
-                <div class="flex items-center justify-between">
-                    <h4 class="font-medium text-gray-800">{{ prescription.medicine_name }}</h4>
-                    <span class="text-sm text-gray-500">{{ prescription.date|date:"M d" }}</span>
-                </div>
-                <p class="text-sm text-gray-600 mt-1">{{ prescription.dosage }}</p>
-                <p class="text-xs text-gray-500 mt-1">Prescribed by Dr. {{ prescription.doctor_name }}</p>
-            </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center py-8">
-            <i class="ri-medicine-bottle-line text-4xl text-gray-400 mb-2"></i>
-            <p class="text-gray-500">No recent prescriptions</p>
-        </div>
-        {% endif %}
-    </div>
-</div>
-{% endblock %}
-
-{% block extra_scripts %}
-<script>
-{% if latest_assessment %}
-// Confidence Chart
-const confidenceCtx = document.getElementById('confidenceChart').getContext('2d');
-new Chart(confidenceCtx, {
-    type: 'doughnut',
-    data: {
-        datasets: [{
-            data: [{{ latest_assessment.confidence }}, 100 - {{ latest_assessment.confidence }}],
-            backgroundColor: ['#2563eb', '#e2e8f0'],
-            borderWidth: 0
-        }]
-    },
-    options: {
-        cutout: '75%',
-        plugins: {
-            legend: {
-                display: false
+        // Confidence Chart
+        const confidenceCtx = document.getElementById('confidenceChart').getContext('2d');
+        new Chart(confidenceCtx, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [{{ latest_assessment.confidence }}, 100 - {{ latest_assessment.confidence }}],
+                    backgroundColor: ['#4f46e5', '#e5e7eb'],
+                    borderWidth: 0
+                }]
             },
-        }
-    }
-});
-{% endif %}
-
-{% if medical_info.symptoms %}
-// Symptoms Timeline Chart
-const symptomsCtx = document.getElementById('symptomsChart').getContext('2d');
-const symptomsData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-    datasets: [{
-        label: 'Symptom Intensity',
-        data: [4, 3, 5, 2, 4, 3],
-        borderColor: '#2563eb',
-        backgroundColor: 'rgba(37, 99, 235, 0.1)',
-        fill: true
-    }]
-};
-
-const symptomsChart = new Chart(symptomsCtx, {
-    type: 'line',
-    data: symptomsData,
-    options: {
-        responsive: true,
-        scales: {
-            y: {
-                beginAtZero: true,
-                max: 5
+            options: {
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                }
             }
-        }
-    }
-});
-{% endif %}
+        });
+        {% endif %}
 
-function toggleSymptoms() {
-    // Add toggle functionality here
-}
-</script>
-{% endblock %}
+        {% if medical_info.symptoms %}
+        // Symptoms Timeline Chart
+        const symptomsCtx = document.getElementById('symptomsChart').getContext('2d');
+        const symptomsData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+            datasets: [{
+                label: 'Symptom Intensity',
+                data: [4, 3, 5, 2, 4, 3],
+                borderColor: '#4f46e5',
+                backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                fill: true
+            }]
+        };
+
+        const symptomsChart = new Chart(symptomsCtx, {
+            type: 'line',
+            data: symptomsData,
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 5
+                    }
+                }
+            }
+        });
+        {% endif %}
+
+        function toggleSymptoms() {
+            // Add toggle functionality here
+        }
+    </script>
+</body>
+</html>
